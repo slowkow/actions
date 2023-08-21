@@ -36,10 +36,10 @@ runs:
       env:
         _R_CHECK_CRAN_INCOMING_: false
       working-directory: ${{ inputs.working-directory }}
-			uses: nick-fields/retry@v2
-				with:
+      uses: nick-fields/retry@v2
+        with:
           retry_on: error
-					timeout_minutes: ${{ inputs.timeout_minutes }}
+          timeout_minutes: ${{ inputs.timeout_minutes }}
           max_attempts: 3
           shell: Rscript
           command: |
@@ -74,4 +74,3 @@ runs:
         name: ${{ runner.os }}-r${{ matrix.config.r }}-testthat-snapshots
         path: ${{ steps.rcmdcheck.outputs.check-dir-path }}/**/tests*/testthat/_snaps
         if-no-files-found: ignore
-
