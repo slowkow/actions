@@ -32,19 +32,19 @@ runs:
   steps:
 
     - uses: nick-fields/retry@v2
-        with:
-          retry_on: error
-          timeout_minutes: ${{ inputs.timeout_minutes }}
-          max_attempts: 3
-          shell: Rscript
-          command: |
-            ## --------------------------------------------------------------------
-            options(crayon.enabled = TRUE)
-            Sys.setenv(_R_CHECK_CRAN_INCOMING_ = "false")
-            cat("LOGNAME=", Sys.info()[["user"]], "\n", sep = "", file = Sys.getenv("GITHUB_ENV"), append = TRUE)
-            if (Sys.getenv("_R_CHECK_FORCE_SUGGESTS_", "") == "") Sys.setenv("_R_CHECK_FORCE_SUGGESTS_" = "false")
-            cat("check-dir-path=", file.path(getwd(), (${{ inputs.check-dir }})), "\n", file = Sys.getenv("GITHUB_OUTPUT"), sep = "", append = TRUE)
-            check_results <- rcmdcheck::rcmdcheck(args = (${{ inputs.args }}), build_args = (${{ inputs.build_args }}), error_on = (${{ inputs.error-on }}), check_dir = (${{ inputs.check-dir }}))
+      with:
+        retry_on: error
+        timeout_minutes: ${{ inputs.timeout_minutes }}
+        max_attempts: 3
+        shell: Rscript
+        command: |
+          ## --------------------------------------------------------------------
+          options(crayon.enabled = TRUE)
+          Sys.setenv(_R_CHECK_CRAN_INCOMING_ = "false")
+          cat("LOGNAME=", Sys.info()[["user"]], "\n", sep = "", file = Sys.getenv("GITHUB_ENV"), append = TRUE)
+          if (Sys.getenv("_R_CHECK_FORCE_SUGGESTS_", "") == "") Sys.setenv("_R_CHECK_FORCE_SUGGESTS_" = "false")
+          cat("check-dir-path=", file.path(getwd(), (${{ inputs.check-dir }})), "\n", file = Sys.getenv("GITHUB_OUTPUT"), sep = "", append = TRUE)
+          check_results <- rcmdcheck::rcmdcheck(args = (${{ inputs.args }}), build_args = (${{ inputs.build_args }}), error_on = (${{ inputs.error-on }}), check_dir = (${{ inputs.check-dir }}))
 
     - name: Show testthat output
       if: always()
