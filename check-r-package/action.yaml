@@ -31,12 +31,7 @@ runs:
   using: "composite"
   steps:
 
-    - name: Check
-      id: rcmdcheck    
-      env:
-        _R_CHECK_CRAN_INCOMING_: false
-      working-directory: ${{ inputs.working-directory }}
-      uses: nick-fields/retry@v2
+    - uses: nick-fields/retry@v2
         with:
           retry_on: error
           timeout_minutes: ${{ inputs.timeout_minutes }}
@@ -45,6 +40,7 @@ runs:
           command: |
             ## --------------------------------------------------------------------
             options(crayon.enabled = TRUE)
+            Sys.setenv(_R_CHECK_CRAN_INCOMING_ = "false")
             cat("LOGNAME=", Sys.info()[["user"]], "\n", sep = "", file = Sys.getenv("GITHUB_ENV"), append = TRUE)
             if (Sys.getenv("_R_CHECK_FORCE_SUGGESTS_", "") == "") Sys.setenv("_R_CHECK_FORCE_SUGGESTS_" = "false")
             cat("check-dir-path=", file.path(getwd(), (${{ inputs.check-dir }})), "\n", file = Sys.getenv("GITHUB_OUTPUT"), sep = "", append = TRUE)
