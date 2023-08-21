@@ -23,23 +23,32 @@ inputs:
   upload-results:
     description: 'Whether to upload check results for successful runs too.'
     default: false
+  timeout_minutes:
+    description: 'How many minutes to wait for rcmdcheck() to finish.'
+    default: 5
 
 runs:
   using: "composite"
   steps:
+
     - name: Check
       id: rcmdcheck    
       env:
         _R_CHECK_CRAN_INCOMING_: false
-      run: |
-        ## --------------------------------------------------------------------
-        options(crayon.enabled = TRUE)
-        cat("LOGNAME=", Sys.info()[["user"]], "\n", sep = "", file = Sys.getenv("GITHUB_ENV"), append = TRUE)
-        if (Sys.getenv("_R_CHECK_FORCE_SUGGESTS_", "") == "") Sys.setenv("_R_CHECK_FORCE_SUGGESTS_" = "false")
-        cat("check-dir-path=", file.path(getwd(), (${{ inputs.check-dir }})), "\n", file = Sys.getenv("GITHUB_OUTPUT"), sep = "", append = TRUE)
-        check_results <- rcmdcheck::rcmdcheck(args = (${{ inputs.args }}), build_args = (${{ inputs.build_args }}), error_on = (${{ inputs.error-on }}), check_dir = (${{ inputs.check-dir }}))
-      shell: Rscript {0}
       working-directory: ${{ inputs.working-directory }}
+			uses: nick-fields/retry@v2
+				with:
+          retry_on: error
+					timeout_minutes: ${{ inputs.timeout_minutes }}
+          max_attempts: 3
+          shell: Rscript
+          command: |
+            ## --------------------------------------------------------------------
+            options(crayon.enabled = TRUE)
+            cat("LOGNAME=", Sys.info()[["user"]], "\n", sep = "", file = Sys.getenv("GITHUB_ENV"), append = TRUE)
+            if (Sys.getenv("_R_CHECK_FORCE_SUGGESTS_", "") == "") Sys.setenv("_R_CHECK_FORCE_SUGGESTS_" = "false")
+            cat("check-dir-path=", file.path(getwd(), (${{ inputs.check-dir }})), "\n", file = Sys.getenv("GITHUB_OUTPUT"), sep = "", append = TRUE)
+            check_results <- rcmdcheck::rcmdcheck(args = (${{ inputs.args }}), build_args = (${{ inputs.build_args }}), error_on = (${{ inputs.error-on }}), check_dir = (${{ inputs.check-dir }}))
 
     - name: Show testthat output
       if: always()
@@ -65,3 +74,4 @@ runs:
         name: ${{ runner.os }}-r${{ matrix.config.r }}-testthat-snapshots
         path: ${{ steps.rcmdcheck.outputs.check-dir-path }}/**/tests*/testthat/_snaps
         if-no-files-found: ignore
+
